@@ -50,3 +50,9 @@ class Tetris:
                         and (self.board[x + i % figure[0]][y + i // figure[1]] != '0'):
                     return True
             return False
+
+    def rotate(self, degree=0, figure):
+        if degree == 0:
+            return self.figure(figure[3], figure[4] + 1)
+        else:
+            return self.figure(figure[3], figure[5] + 1)
