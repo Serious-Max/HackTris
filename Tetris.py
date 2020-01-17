@@ -4,8 +4,8 @@ class Tetris:
         self.ysize = ysize
         self.board = [list([0] * xsize) for _ in range(ysize)]
 
-    def get_board(self):
-        return self.board
+    # def get_board(self):
+    #    return self.board
 
     def figure(self, type, pozition):
         figure_list = [
@@ -56,3 +56,15 @@ class Tetris:
             return self.figure(figure[3], figure[4] + 1)
         else:
             return self.figure(figure[3], figure[5] + 1)
+
+    def render(self, figure, x, y):
+        temp1 = self.board
+        temp2 = list(figure[2])
+        for i in range(len(temp)):
+            temp1[x + i % figure[0]][y + i // figure[1]] = temp2[i]
+        return temp1
+
+    def add(self, figure, x, y):
+        temp2 = list(figure[2])
+        for i in range(len(temp)):
+            self.boardx[x + i % figure[0]][y + i // figure[1]] = temp2[i]
