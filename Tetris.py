@@ -42,7 +42,7 @@ class Tetris:
     def is_intersection(self, figure, x, y):
         if (figure[0] + x > self.xsize) \
                 or (x < 0) or (figure[1] + y > self.ysize):
-            return T4rue
+            return True
         else:
             temp = list(figure[2])
             for i in range(len(temp)):
