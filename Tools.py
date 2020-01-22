@@ -1,5 +1,6 @@
 from GameObject import GameObject
 from TextObject import TextObject
+import pygame
 import config as c
 
 class Button(GameObject):
@@ -14,7 +15,6 @@ class Button(GameObject):
         super().__init__(x, y, w, h)
         self.state = 'normal'
         self.on_click = on_click
-
         self.text = TextObject(x + padding,
                                y + padding, lambda: text,
                                c.button_text_color,
@@ -23,7 +23,7 @@ class Button(GameObject):
 
     def draw(self, surface):
         pygame.draw.rect(surface,
-                         self.back_color,
+                         self.back_color(),
                          self.bounds)
         self.text.draw(surface)
 
@@ -48,7 +48,8 @@ class Button(GameObject):
 
     def handle_mouse_up(self, pos):
         if self.state == 'pressed':
-            self.on_click(self)
+            #self.on_click(self)
+            self.on_click
             self.state = 'hover'
 
     def back_color(self):

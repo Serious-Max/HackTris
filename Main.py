@@ -5,20 +5,15 @@ from TextObject import TextObject
 from Tetris import Tetris
 import Screens
 import config as c
-import Tools as *
-
-# игровые экраны
-class Game:
-    def __init__(self):
-        pass
-
 
 pygame.init()
-game = Game()
-game.create_menu()
 running = True
+screen = pygame.display.set_mode((c.width, c.height))
+MainMenu = Screens.MainMenu(screen)
+MainMenu.draw()
 while running:
     for event in pygame.event.get():
-        if event.type() == pygame.QUIT:
+        if event.type == pygame.QUIT:
             running = False
+        MainMenu.run(event)
     pygame.display.flip()
