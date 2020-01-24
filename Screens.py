@@ -1,6 +1,8 @@
+import GameObject
 import config as c
 import pygame
 from Tools import Button
+import Tetris
 
 
 class MainMenu:
@@ -69,11 +71,29 @@ class GameMenu:
 
 
 class PlayLevel:
-    def __init__(self):
+    def __init__(self, screen):
+        self.screen = screen
+        self.tetris = Tetris.Tetris(10, 20)
+        self.active_figure = None
+        self.figure_poz_x = 0
+        self.figure_poz_y = 0
+
+    def run(self, event):
         pass
 
-    def run(self):
-        pass
+    def draw(self):
+        if self.active_figure:
+            temp = self.tetris.render(self.active_figure, self.figure_poz_x, self.figure_poz_y)
+        else:
+            temp = self.tetris.render([0, 0, ''], 0, 0)
+        for x in range(self.tetris.xsize):
+            for y in range(self.tetris.ysize):
+                symb = temp[y][x]
+                if symb:
+                    temp_obj = GameObject.GameObject(c.bowl_x() + x * (c.square_size() + 1),
+                                                     c.bowl_y() + y * (c.square_size() + 1), c.square_size(),
+                                                     c.square_size())
+                    pygame.draw.rect(self.screen, c.square_color, temp_obj.bounds)
 
 
 class Store:

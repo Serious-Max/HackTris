@@ -6,8 +6,21 @@ button_text_color = pygame.Color('black')
 button_normal_back_color = pygame.Color(255, 255, 255)
 button_hover_back_color = pygame.Color('red')
 button_pressed_back_color = pygame.Color('blue')
+square_color = pygame.Color('White')
 font_name = 'Times New Roman'
 font_size = 24
+
+
+def bowl_x():
+    return 10
+
+
+def bowl_y():
+    return 10
+
+
+def square_size():
+    return 10
 
 
 def padding():

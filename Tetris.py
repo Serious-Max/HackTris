@@ -47,7 +47,7 @@ class Tetris:
             temp = list(figure[2])
             for i in range(len(temp)):
                 if (temp[i] == '1') \
-                        and (self.board[x + i % figure[0]][y + i // figure[1]] != '0'):
+                        and (self.board[y + i // figure[1]][x + i % figure[0]] != '0'):
                     return True
             return False
 
@@ -59,12 +59,25 @@ class Tetris:
 
     def render(self, figure, x, y):
         temp1 = self.board
+        # print(figure)
+        # print(figure[2])
         temp2 = list(figure[2])
-        for i in range(len(temp1)):
-            temp1[x + i % figure[0]][y + i // figure[1]] = temp2[i]
+        # print(temp2, len(temp2))
+        for i in range(len(temp2)):
+            # print(i)
+            # print(figure[1], figure[0])
+            # print(y + i // figure[0], x + i % figure[1])
+            temp1[y + i // figure[0]][x + i % figure[0]] = int(temp2[i])
         return temp1
 
     def add(self, figure, x, y):
         temp2 = list(figure[2])
         for i in range(len(temp2)):
-            self.boardx[x + i % figure[0]][y + i // figure[1]] = temp2[i]
+            self.boardx[y + i // figure[1]][x + i % figure[0]] = temp2[i]
+
+    def del_line(self, n):
+        for i in range(n, -1, -1):
+            if i:
+                self.boad[i] = list(self.board[i - 1])
+            else:
+                self.board[i] = list([0] * self.xsize)
