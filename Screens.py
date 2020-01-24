@@ -1,8 +1,10 @@
 import GameObject
+import TextObject
 import config as c
 import pygame
 from Tools import Button
 import Tetris
+import random
 
 
 class MainMenu:
@@ -75,11 +77,61 @@ class PlayLevel:
         self.screen = screen
         self.tetris = Tetris.Tetris(10, 20)
         self.active_figure = None
-        self.figure_poz_x = 0
+        self.figure_poz_x = 5
         self.figure_poz_y = 0
+        self.game_run = False
+        self.TICK = 2
+        pygame.time.set_timer(self.TICK, c.sencivity)
 
     def run(self, event):
-        pass
+        self.fill()
+        if self.game_run:
+            if event.type == pygame.KEYUP and event.key == pygame.K_p:
+                self.game_run = False
+            if event.type == self.MOVE:
+                if self.active_figure:
+                    if not self.tetris.is_intersection(self.active_figure, self.figure_poz_x, self.figure_poz_y + 1):
+                        self.figure_poz_y += 1
+                        #print('Move down')
+                    else:
+                        #print('Crash')
+                        self.tetris.add(self.active_figure, self.figure_poz_x, self.figure_poz_y)
+                        self.active_figure = None
+                        self.figure_poz_y = 0
+                        self.figure_poz_x = 5
+                        for i in range(self.tetris.ysize):
+                            if all(self.tetris.board[i]):
+                                self.tetris.del_line(i)
+                                self.del_lines += 1
+                else:
+                    #print('Generate figure...')
+                    #print(self.tetris.board)
+                    self.active_figure = self.tetris.figure(random.randint(0, 6), 0)
+                    #print(self.tetris.board)
+                    #print('Generate figure...OK')
+            if self.active_figure and event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+                temp = self.tetris.rotate(self.active_figure)
+                if not self.tetris.is_intersection(temp, self.figure_poz_x, self.figure_poz_y):
+                    self.active_figure = temp
+            if event.type == self.TICK and self.active_figure:
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_LEFT]:
+                    if not self.tetris.is_intersection(self.active_figure, self.figure_poz_x - 1, self.figure_poz_y):
+                        self.figure_poz_x -= 1
+                if keys[pygame.K_RIGHT]:
+                    if not self.tetris.is_intersection(self.active_figure, self.figure_poz_x + 1, self.figure_poz_y):
+                        self.figure_poz_x += 1
+                if keys[pygame.K_DOWN]:
+                    if not self.tetris.is_intersection(self.active_figure, self.figure_poz_x, self.figure_poz_y + 1):
+                        self.figure_poz_y += 1
+        else:
+            temp = TextObject.TextObject(c.pause_text_x(), c.pause_text_y(), lambda: 'Press F to play',
+                                         c.game_font_color, c.game_front_name, c.game_font_size)
+            temp.draw(self.screen)
+            if event.type == pygame.KEYUP and event.key == pygame.K_f:
+                #print(1)
+                self.game_run = True
+        self.draw()
 
     def draw(self):
         if self.active_figure:
@@ -95,6 +147,16 @@ class PlayLevel:
                                                      c.square_size())
                     pygame.draw.rect(self.screen, c.square_color, temp_obj.bounds)
 
+    def fill(self):
+        self.screen.fill((0, 0, 0))
+
+    def load_level(self, level_name):
+        file = open(level_name, mode='rt')
+        self.difficult = int(file.readlines()[1])
+        file.close()
+        self.MOVE = 1
+        self.del_lines = 0
+        pygame.time.set_timer(self.MOVE, self.difficult)
 
 class Store:
     def __init__(self):

@@ -9,7 +9,16 @@ button_pressed_back_color = pygame.Color('blue')
 square_color = pygame.Color('White')
 font_name = 'Times New Roman'
 font_size = 24
+game_front_name = 'Times New Roman'
+game_font_size = 18
+game_font_color = pygame.Color('green')
+sencivity = 200
 
+def pause_text_x():
+    return 200
+
+def pause_text_y():
+    return 200
 
 def bowl_x():
     return 10

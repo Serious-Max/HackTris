@@ -9,16 +9,18 @@ import config as c
 pygame.init()
 running = True
 screen = pygame.display.set_mode((c.width, c.height),pygame.HWSURFACE|pygame.DOUBLEBUF|pygame.FULLSCREEN)
+#screen = pygame.display.set_mode((c.width, c.height))
 MainMenu = Screens.MainMenu(screen)
-MainMenu.draw()
+#MainMenu.draw()
 PlayLevel = Screens.PlayLevel(screen)
-#PlayLevel.draw()
+PlayLevel.load_level(os.path.join('levels', '1.txt'))
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            running = False
-        MainMenu.run(event)
+        #if event.type == pygame.MOUSEBUTTONDOWN:
+        #    running = False
+        #MainMenu.run(event)
+        PlayLevel.run(event)
     pygame.display.flip()
 pygame.quit()

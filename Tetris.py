@@ -1,3 +1,6 @@
+import copy
+
+
 class Tetris:
     def __init__(self, xsize, ysize):
         self.xsize = xsize
@@ -40,14 +43,19 @@ class Tetris:
         return figure_list[type][pozition]
 
     def is_intersection(self, figure, x, y):
+        # print(figure, x, y, self.xsize, self.ysize)
+        # print(self.board)
         if (figure[0] + x > self.xsize) \
                 or (x < 0) or (figure[1] + y > self.ysize):
+            # print('Out border')
             return True
         else:
+            # print('another')
             temp = list(figure[2])
             for i in range(len(temp)):
+                # print(temp, self.board)
                 if (temp[i] == '1') \
-                        and (self.board[y + i // figure[1]][x + i % figure[0]] != '0'):
+                        and (self.board[y + i // figure[0]][x + i % figure[0]] != 0):
                     return True
             return False
 
@@ -58,7 +66,10 @@ class Tetris:
             return self.figure(figure[3], figure[5] + 1)
 
     def render(self, figure, x, y):
-        temp1 = self.board
+        # print(1, self.board)
+        # print('Render...')
+        temp1 = copy.deepcopy(self.board)
+        #print(2, self.board)
         # print(figure)
         # print(figure[2])
         temp2 = list(figure[2])
@@ -67,17 +78,25 @@ class Tetris:
             # print(i)
             # print(figure[1], figure[0])
             # print(y + i // figure[0], x + i % figure[1])
-            temp1[y + i // figure[0]][x + i % figure[0]] = int(temp2[i])
+            # print(i, self.board)
+            if int(temp2[i]):
+                temp1[y + i // figure[0]][x + i % figure[0]] = int(temp2[i])
+        # print('Render...OK')
+        # print(3, self.board)
+        # print('---------')
         return temp1
 
     def add(self, figure, x, y):
+        #print('Add...')
         temp2 = list(figure[2])
         for i in range(len(temp2)):
-            self.boardx[y + i // figure[1]][x + i % figure[0]] = temp2[i]
+            if int(temp2[i]):
+                self.board[y + i // figure[0]][x + i % figure[0]] = int(temp2[i])
 
     def del_line(self, n):
+        #print('Deleting')
         for i in range(n, -1, -1):
             if i:
-                self.boad[i] = list(self.board[i - 1])
+                self.board[i] = list(self.board[i - 1])
             else:
                 self.board[i] = list([0] * self.xsize)
