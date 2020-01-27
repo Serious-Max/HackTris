@@ -1,6 +1,7 @@
 from GameObject import GameObject
 from TextObject import TextObject
 import pygame
+import os
 import config as c
 
 class Button(GameObject):
@@ -48,8 +49,7 @@ class Button(GameObject):
 
     def handle_mouse_up(self, pos):
         if self.state == 'pressed':
-            #self.on_click(self)
-            self.on_click
+            self.on_click(self)
             self.state = 'hover'
 
     def back_color(self):
