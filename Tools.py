@@ -12,10 +12,15 @@ class Button(GameObject):
                  h,
                  text,
                  on_click=lambda x: None,
-                 padding=0):
+                 padding=0,
+                 image=None):
         super().__init__(x, y, w, h)
         self.state = 'normal'
         self.on_click = on_click
+        if image:
+            self.image = pygame.transform.scale(image, (w, h))
+        else:
+            self.image = None
         self.text = TextObject(x + padding,
                                y + padding, lambda: text,
                                c.button_text_color,
@@ -23,10 +28,13 @@ class Button(GameObject):
                                c.font_size)
 
     def draw(self, surface):
-        pygame.draw.rect(surface,
+        if self.image:
+            surface.blit(self.image, (self.top(), self.left()))
+        else:
+            pygame.draw.rect(surface,
                          self.back_color(),
                          self.bounds)
-        self.text.draw(surface)
+            self.text.draw(surface)
 
     def handle_mouse_event(self, type, pos):
         if type == pygame.MOUSEMOTION:

@@ -1,4 +1,4 @@
 Demo level
-1000
-10
+125
+5
 It's demo level

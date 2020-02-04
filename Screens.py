@@ -3,7 +3,7 @@ import TextObject
 import config as c
 import pygame
 import os
-from Tools import Button
+from Tools import Button, load_image
 import Tetris
 import random
 
@@ -14,6 +14,10 @@ class MainMenu:
         self.objects = list()
         self.menu_buttons = list()
         self.mouse_handlers = list()
+        self.name = 'Username'
+        self.slot = 1
+        self.wait = 0
+        self.saves = SavesMenu(self.screen)
         for i, (text, handler) in enumerate((('Load Game', self.load),
                                              ('New Game', self.new_game),
                                              ('Settings', self.settings),
@@ -31,12 +35,16 @@ class MainMenu:
 
     def run(self, event):
         self.command = '0'
-        if event.type in [pygame.MOUSEBUTTONDOWN,
-                          pygame.MOUSEBUTTONUP,
-                          pygame.MOUSEMOTION]:
-            for i in self.menu_buttons:
-                i.handle_mouse_event(event.type, event.pos)
-        self.draw()
+        if self.wait:
+            self.set_slot(event=event)
+        else:
+
+            if event.type in [pygame.MOUSEBUTTONDOWN,
+                              pygame.MOUSEBUTTONUP,
+                              pygame.MOUSEMOTION]:
+                for i in self.menu_buttons:
+                    i.handle_mouse_event(event.type, event.pos)
+            self.draw()
         return self.command
 
     def draw(self):
@@ -44,10 +52,15 @@ class MainMenu:
         for i in self.objects:
             i.draw(self.screen)
 
-    def new_game(self, obj):
-        file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='wt')
-        file.write(';'.join([self.name, str(0), str(0)]))
-        file.close()
+    def new_game(self, obj, skip=False):
+        if not skip:
+            self.set_slot()
+        if self.wait:
+            pass
+        else:
+            file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='wt')
+            file.write(';'.join([self.name, str(0), '0', str(0)]))
+            file.close()
 
     def quit(self, obj):
         self.command = 'exit'
@@ -61,6 +74,17 @@ class MainMenu:
 
     def fill(self):
         self.screen.fill((0, 0, 0))
+
+    def set_slot(self, event=-1):
+        if self.wait == 0:
+            self.wait = 1
+        else:
+            command = self.saves.run(event)
+            temp = command.split(';')
+            if temp[0] == 'load':
+                self.slot = int(temp[1])
+                self.wait = 0
+                self.new_game(0, True)
 
 
 class SavesMenu:
@@ -119,17 +143,27 @@ class Desktop:
     def __init__(self, screen):
         self.screen = screen
         self.slot = 1
+        self.skill = 0
         self.buttons = []
-        for i, (text, handler) in enumerate((('Mail', self.open_text),
+        self.level_ready = False
+        self.level_text = 'Andrew'
+        self.state = 'read'
+        self.items = dict()
+        self.background = pygame.transform.scale(load_image('wallaper1.png'), (c.width, c.height))
+        for i, (text, handler) in enumerate((('Mail', self.mail),
                                              ('IDE', self.start_level),
                                              ('Main_menu', self.back))):
+            image = None
+            if text == 'Mail':
+                image = load_image('Mail_icon_1.png', colorkey=None)
             b = Button(c.mail_button_x(),
                        c.mail_button_y() + (c.desktop_square_button() + int((c.height * 5) / 100)) * i,
                        c.desktop_square_button(),
                        c.desktop_square_button(),
                        text,
                        handler,
-                       padding=c.padding())
+                       padding=c.padding(),
+                       image=image)
             self.buttons.append(b)
 
     def run(self, event):
@@ -149,11 +183,17 @@ class Desktop:
         for i in self.buttons:
             i.draw(self.screen)
 
-    def open_text(self, obj):
-        pass
+    def mail(self, obj):
+        if self.state == 'read':
+            self.load_text(state='start')
+            self.command = 'set_text;' + self.level_text + ';01'
+            print(self.level_text)
+            self.level_ready = True
 
     def start_level(self, obj):
-        pass
+        if self.level_ready:
+            self.command = 'play;' + os.path.join('levels', str(self.next_level) + '_start' + '.txt')
+            self.state = 'play'
 
     def back(self, obj):
         self.save()
@@ -161,19 +201,47 @@ class Desktop:
 
     def save(self):
         file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='wt')
-        file.write(';'.join([self.name, str(self.money), str(self.next_level)]))
+        file.write(';'.join([self.name, str(self.money), str(self.next_level), str(self.skill)]))
         file.close()
 
     def load(self):
         file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='rt')
-        temp = file.readlines()
+        temp = file.readlines()[0].split(';')
         file.close()
         self.name = temp[0]
         self.money = int(temp[1])
-
+        self.next_level = temp[2]
+        self.skill = int(temp[3])
 
     def fill(self):
-        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.background, (0, 0))
+        #self.screen.fill((0, 0, 0))
+
+    def select_next_level(self):
+        if self.state == 'read':
+            pass
+        else:
+            print(self.next_level)
+            self.next_level = int(self.next_level) + 1
+            self.save()
+            self.level_ready = False
+            self.state = 'read'
+
+    def load_text(self, state='start'):
+        file = open(os.path.join('levels', str(self.next_level) + '_' + state + '.txt'))
+        self.level_text = file.readlines()[0]
+        file.close()
+
+    def repeat_level(self):
+        self.save()
+        self.level_ready = True
+        self.start_level(0)
+
+    def add_item(self, item):
+        if item in self.items:
+            self.items[item] += 1
+        else:
+            self.items[item] = 1
 
 
 class PlayLevel:
@@ -184,14 +252,28 @@ class PlayLevel:
         self.figure_poz_y = 0
         self.game_run = False
         self.TICK = 2
+        self.CHANGE = 3
+        self.count = 0
+        self.background = [
+            pygame.transform.scale(load_image(os.path.join('background', str(i) + '.png')), (c.width, c.height)) for i
+            in range(34)]
         pygame.time.set_timer(self.TICK, c.sencivity)
+        pygame.time.set_timer(self.CHANGE, c.animation_time)
 
     def run(self, event):
+        if event.type == self.CHANGE:
+            self.count = (self.count + 1) % 34
         self.command = '0'
         self.fill()
         if self.game_run:
             if event.type == pygame.KEYUP and event.key == pygame.K_p:
                 self.game_run = False
+            if event.type == pygame.KEYUP and event.key == pygame.K_w:
+                self.game_run = False
+                self.game_win = True
+            if event.type == pygame.KEYUP and event.key == pygame.K_l:
+                self.game_run = False
+                self.game_over = True
             if event.type == self.MOVE:
                 if self.active_figure:
                     if not self.tetris.is_intersection(self.active_figure, self.figure_poz_x, self.figure_poz_y + 1):
@@ -209,6 +291,7 @@ class PlayLevel:
                                 self.del_lines += 1
                                 if self.del_lines == self.end:
                                     self.game_win = True
+                                    self.game_run = False
                 else:
                     # print('Generate figure...')
                     # print(self.tetris.board)
@@ -235,14 +318,23 @@ class PlayLevel:
                         self.figure_poz_y += 1
         else:
             if self.game_over:
-                pass
+                self.command = 'Game_over'
+                self.figure_poz_y = 0
+                self.figure_poz_x = 5
+                # print('Game_over')
+            elif self.game_win:
+                self.command = 'Game_win'
+                self.figure_poz_y = 0
+                self.figure_poz_x = 5
+                # print('Game_win')
             else:
-                temp = TextObject.TextObject(c.pause_text_x(), c.pause_text_y(), lambda: 'Press F to play',
+                temp = TextObject.TextObject(c.pause_text_x(), c.pause_text_y(), lambda: 'Press P to start',
                                              c.game_font_color, c.game_front_name, c.game_font_size)
                 temp.draw(self.screen)
-                if event.type == pygame.KEYUP and event.key == pygame.K_f:
+                if event.type == pygame.KEYUP and event.key == pygame.K_p:
                     # print(1)
                     self.game_run = True
+        #if event.type == c.DRAW:
         self.draw()
         return self.command
 
@@ -254,16 +346,20 @@ class PlayLevel:
         for x in range(self.tetris.xsize):
             for y in range(self.tetris.ysize):
                 symb = temp[y][x]
+                temp_obj = GameObject.GameObject(c.bowl_x() + x * (c.square_size() + 1),
+                                                 c.bowl_y() + y * (c.square_size() + 1), c.square_size(),
+                                                 c.square_size())
                 if symb:
-                    temp_obj = GameObject.GameObject(c.bowl_x() + x * (c.square_size() + 1),
-                                                     c.bowl_y() + y * (c.square_size() + 1), c.square_size(),
-                                                     c.square_size())
                     pygame.draw.rect(self.screen, c.square_color, temp_obj.bounds)
+                else:
+                    pygame.draw.rect(self.screen, c.background_square_color, temp_obj.bounds)
 
     def fill(self):
-        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.background[self.count], (0, 0))
+        # self.screen.fill((0, 0, 0))
 
     def load_level(self, level_name):
+        print(level_name)
         self.tetris = Tetris.Tetris(10, 20)
         file = open(level_name, mode='rt')
         temp = file.readlines()
@@ -278,8 +374,110 @@ class PlayLevel:
 
 
 class Store:
-    def __init__(self):
-        pass
+    def __init__(self, screen):
+        self.screen = screen
+        self.money = 0
 
     def run(self):
-        pass
+        self.command = '0'
+        self.draw()
+        return self.command
+
+    def draw(self):
+        self.fill()
+
+    def fill(self):
+        self.screen.fill((0, 0, 0))
+
+    def set_money(self, money):
+        self.money = money
+
+
+class Text_screen:
+    def __init__(self, screen):
+        self.screen = screen
+        self.text = 'Andrew, add text!'
+        self.x = 0
+        self.y = 0
+        self.repeat_button_active = False
+        self.next_button_active = True
+        self.buttons = list()
+        b = Button(c.text_messange_repeat_x(),
+                   c.text_messange_repeat_y(),
+                   c.text_messange_repeat_button_w(),
+                   c.text_messange_repeat_button_h(),
+                   'Repeat',
+                   self.repeat)
+        self.buttons.append(b)
+
+        b = Button(c.text_messange_next_x(),
+                   c.text_messange_next_y(),
+                   c.text_messange_next_button_w(),
+                   c.text_messange_next_button_h(),
+                   'Next',
+                   self.next)
+        self.buttons.append(b)
+
+    def run(self, event):
+        self.command = ''
+        if event.type in [pygame.MOUSEBUTTONDOWN,
+                          pygame.MOUSEBUTTONUP,
+                          pygame.MOUSEMOTION]:
+
+            if self.repeat_button_active:
+                self.buttons[0].handle_mouse_event(event.type, event.pos)
+            if self.next_button_active:
+                self.buttons[1].handle_mouse_event(event.type, event.pos)
+        self.draw()
+        return self.command
+
+    def draw(self):
+        self.fill()
+        if self.repeat_button_active:
+            self.buttons[0].draw(self.screen)
+        if self.next_button_active:
+            self.buttons[1].draw(self.screen)
+        temp0 = self.lines()
+        for i in range(len(temp0)):
+            temp = TextObject.TextObject(self.x, self.y + i * c.text_padding(), lambda: temp0[i],
+                                         c.text_messange_color, c.text_messange_font, c.text_messange_size)
+            temp.draw(self.screen)
+
+    def set_text(self, text):
+        self.text = ' '.join(text.split("'\n'"))
+
+    def lines(self):
+        out = list()
+        temp = len(self.text)
+        temp1 = self.text
+        while temp > 0:
+            # print(temp1)
+            if temp >= c.char_in_line():
+                # print(1)
+                out.append(temp1[0:c.char_in_line()])
+                temp1 = temp1[c.char_in_line():]
+                temp -= c.char_in_line()
+            else:
+                # print(2)
+                out.append(temp1[0:])
+                temp = 0
+        return out
+
+    def set_cords(self, x, y):
+        self.x = x
+        self.y = y
+
+    def set_rep_button(self, state):
+        self.repeat_button_active = state
+
+    def set_next_button(self, state):
+        self.next_button_active = state
+
+    def repeat(self, obj):
+        self.command = 'repeat'
+
+    def next(self, obj):
+        self.command = 'next'
+
+    def fill(self):
+        self.screen.fill((0, 0, 0))
