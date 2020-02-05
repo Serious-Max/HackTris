@@ -211,7 +211,7 @@ class Desktop:
         self.command = 'change;Main_menu'
 
     def save(self):
-        file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='wt')
+        file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='wt', encoding='UTF-8')
         file.write(';'.join([self.name, str(self.money), str(self.next_level), str(self.skill)]))
         file.close()
 
@@ -219,7 +219,7 @@ class Desktop:
         self.slot = slot
 
     def load(self):
-        file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='rt')
+        file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='rt', encoding='UTF-8')
         temp = file.readlines()[0].split(';')
         file.close()
         self.name = temp[0]
@@ -247,7 +247,7 @@ class Desktop:
             self.state = 'read'
 
     def load_text(self, state='start'):
-        file = open(os.path.join('levels', str(self.next_level) + '_' + state + '.txt'))
+        file = open(os.path.join('levels', str(self.next_level) + '_' + state + '.txt'), encoding='UTF-8')
         self.level_text = file.readlines()[0]
         file.close()
 
@@ -389,7 +389,7 @@ class PlayLevel:
     def load_level(self, level_name):
         print(level_name)
         self.tetris = Tetris.Tetris(10, 20)
-        file = open(level_name, mode='rt')
+        file = open(level_name, mode='rt', encoding='UTF-8')
         temp = file.readlines()
         self.difficult = int(temp[1])
         self.end = int(temp[2])
