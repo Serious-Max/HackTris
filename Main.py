@@ -94,7 +94,7 @@ while running:
                 pass
         if temp[0] == 'history':
             load_screen = 'Text'
-            file = open(os.path.join('levels', 'start.txt'))
+            file = open(os.path.join('levels', 'start.txt'), encoding='UTF-8')
             Text_screen.set_text(file.readlines()[0])
             file.close()
     pygame.display.flip()
