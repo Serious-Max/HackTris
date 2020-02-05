@@ -8,7 +8,10 @@ import config as c
 
 pygame.init()
 running = True
-pygame.display.set_caption("Hacktrix alfa")
+pygame.display.set_caption("Hacktrix V1.0")
+info = pygame.display.Info()
+c.width = info.current_w
+c.height = info.current_h
 load_screen = 'Main_menu'
 if c.screen_mode:
     screen = pygame.display.set_mode((c.width, c.height), pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.FULLSCREEN)
@@ -45,7 +48,7 @@ while running:
         if temp[0] == 'exit':
             running = False
         if temp[0] == 'load':
-            slot = int(temp[1])
+            Desktop.set_slot(int(temp[1]))
             Desktop.load()
             load_screen = 'Desktop'
         if temp[0] == 'play':
@@ -89,5 +92,10 @@ while running:
                     Text_screen.set_next_button(False)
             except:
                 pass
+        if temp[0] == 'history':
+            load_screen = 'Text'
+            file = open(os.path.join('levels', 'start.txt'))
+            Text_screen.set_text(file.readlines()[0])
+            file.close()
     pygame.display.flip()
 pygame.quit()

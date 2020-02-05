@@ -18,9 +18,10 @@ class MainMenu:
         self.slot = 1
         self.wait = 0
         self.saves = SavesMenu(self.screen)
+        self.background = pygame.transform.scale(load_image('main_menu_back.png'), (c.width, c.height))
         for i, (text, handler) in enumerate((('Load Game', self.load),
                                              ('New Game', self.new_game),
-                                             ('Settings', self.settings),
+                                             # ('Settings', self.settings),
                                              ('Quit', self.quit))):
             b = Button(c.menu_offset_x(),
                        c.menu_offset_y() + (c.menu_button_h() + int((c.height * 5) / 100)) * i,
@@ -32,6 +33,8 @@ class MainMenu:
             self.objects.append(b)
             self.menu_buttons.append(b)
             self.mouse_handlers.append(b.handle_mouse_event)
+            self.objects.append(TextObject.TextObject(c.menu_name_x(), c.menu_name_y(), lambda: 'HackTrix',
+                                                      c.name_color, c.main_menu_font_name, c.main_menu_font_size))
 
     def run(self, event):
         self.command = '0'
@@ -61,6 +64,7 @@ class MainMenu:
             file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='wt')
             file.write(';'.join([self.name, str(0), '0', str(0)]))
             file.close()
+            self.command = 'history'
 
     def quit(self, obj):
         self.command = 'exit'
@@ -73,7 +77,8 @@ class MainMenu:
         pass
 
     def fill(self):
-        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.background, (0, 0))
+        # self.screen.fill((0, 0, 0))
 
     def set_slot(self, event=-1):
         if self.wait == 0:
@@ -104,6 +109,7 @@ class SavesMenu:
                        handler,
                        padding=c.padding())
             self.buttons.append(b)
+        self.background = pygame.transform.scale(load_image('main_menu_back.png'), (c.width, c.height))
 
     def run(self, event):
         self.command = '0'
@@ -136,7 +142,7 @@ class SavesMenu:
         self.command = 'change;Main_menu'
 
     def fill(self):
-        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.background, (0, 0))
 
 
 class Desktop:
@@ -147,6 +153,7 @@ class Desktop:
         self.buttons = []
         self.level_ready = False
         self.level_text = 'Andrew'
+        self.name = 'Username'
         self.state = 'read'
         self.items = dict()
         self.background = pygame.transform.scale(load_image('wallaper1.png'), (c.width, c.height))
@@ -156,6 +163,10 @@ class Desktop:
             image = None
             if text == 'Mail':
                 image = load_image('Mail_icon_1.png', colorkey=None)
+            if text == 'Main_menu':
+                image = load_image('main_menu.png', colorkey=-1)
+            if text == 'IDE':
+                image = load_image('IDE.png')
             b = Button(c.mail_button_x(),
                        c.mail_button_y() + (c.desktop_square_button() + int((c.height * 5) / 100)) * i,
                        c.desktop_square_button(),
@@ -204,6 +215,9 @@ class Desktop:
         file.write(';'.join([self.name, str(self.money), str(self.next_level), str(self.skill)]))
         file.close()
 
+    def set_slot(self, slot):
+        self.slot = slot
+
     def load(self):
         file = open(os.path.join('saves', str(self.slot) + '.txt'), mode='rt')
         temp = file.readlines()[0].split(';')
@@ -215,14 +229,19 @@ class Desktop:
 
     def fill(self):
         self.screen.blit(self.background, (0, 0))
-        #self.screen.fill((0, 0, 0))
+        # self.screen.fill((0, 0, 0))
 
     def select_next_level(self):
         if self.state == 'read':
-            pass
+            self.load()
         else:
             print(self.next_level)
-            self.next_level = int(self.next_level) + 1
+            if int(self.next_level) < 2:
+                self.next_level = int(self.next_level) + 1
+            if self.next_level == 2:
+                self.next_level = 31
+            if self.next_level == 31:
+                self.next_level = 41
             self.save()
             self.level_ready = False
             self.state = 'read'
@@ -257,6 +276,8 @@ class PlayLevel:
         self.background = [
             pygame.transform.scale(load_image(os.path.join('background', str(i) + '.png')), (c.width, c.height)) for i
             in range(34)]
+        if c.low_mode:
+            self.low_background = pygame.transform.scale(load_image('nums.png'), (c.width, c.height))
         pygame.time.set_timer(self.TICK, c.sencivity)
         pygame.time.set_timer(self.CHANGE, c.animation_time)
 
@@ -266,6 +287,10 @@ class PlayLevel:
         self.command = '0'
         self.fill()
         if self.game_run:
+            temp = TextObject.TextObject(c.pause_text_x(), c.pause_text_y(),
+                                         lambda: '{}/{}'.format(self.del_lines, self.end),
+                                         c.game_font_color, c.game_front_name, c.game_font_size)
+            temp.draw(self.screen)
             if event.type == pygame.KEYUP and event.key == pygame.K_p:
                 self.game_run = False
             if event.type == pygame.KEYUP and event.key == pygame.K_w:
@@ -334,7 +359,7 @@ class PlayLevel:
                 if event.type == pygame.KEYUP and event.key == pygame.K_p:
                     # print(1)
                     self.game_run = True
-        #if event.type == c.DRAW:
+        # if event.type == c.DRAW:
         self.draw()
         return self.command
 
@@ -355,7 +380,10 @@ class PlayLevel:
                     pygame.draw.rect(self.screen, c.background_square_color, temp_obj.bounds)
 
     def fill(self):
-        self.screen.blit(self.background[self.count], (0, 0))
+        if c.low_mode:
+            self.screen.blit(self.low_background, (0, 0))
+        else:
+            self.screen.blit(self.background[self.count], (0, 0))
         # self.screen.fill((0, 0, 0))
 
     def load_level(self, level_name):
@@ -407,7 +435,9 @@ class Text_screen:
                    c.text_messange_repeat_button_w(),
                    c.text_messange_repeat_button_h(),
                    'Repeat',
-                   self.repeat)
+                   self.repeat,
+                   padding=0,
+                   image=load_image('repeat.png'))
         self.buttons.append(b)
 
         b = Button(c.text_messange_next_x(),
@@ -415,7 +445,9 @@ class Text_screen:
                    c.text_messange_next_button_w(),
                    c.text_messange_next_button_h(),
                    'Next',
-                   self.next)
+                   self.next,
+                   padding=0,
+                   image=load_image('next_button.png', colorkey=None))
         self.buttons.append(b)
 
     def run(self, event):
@@ -444,7 +476,14 @@ class Text_screen:
             temp.draw(self.screen)
 
     def set_text(self, text):
-        self.text = ' '.join(text.split("'\n'"))
+        self.text = ''
+        i = 1
+        while i < len(text):
+            if text[i] == 'n':
+                i += 2
+            else:
+                self.text += text[i - 1]
+                i += 1
 
     def lines(self):
         out = list()

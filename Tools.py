@@ -29,7 +29,7 @@ class Button(GameObject):
 
     def draw(self, surface):
         if self.image:
-            surface.blit(self.image, (self.top(), self.left()))
+            surface.blit(self.image, (self.left(), self.top()))
         else:
             pygame.draw.rect(surface,
                          self.back_color(),
@@ -67,7 +67,7 @@ class Button(GameObject):
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname).convert()
+    image = pygame.image.load(fullname).convert_alpha()
     if colorkey is not None:
         if colorkey == -1:
             colorkey = image.get_at((0, 0))
