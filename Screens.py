@@ -77,8 +77,8 @@ class MainMenu:
         pass
 
     def fill(self):
-        self.screen.blit(self.background, (0, 0))
-        # self.screen.fill((0, 0, 0))
+        #self.screen.blit(self.background, (0, 0))
+        self.screen.fill((0, 0, 0))
 
     def set_slot(self, event=-1):
         if self.wait == 0:
